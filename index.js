@@ -30,7 +30,7 @@ app.post('/api/shorturl', bodyParser.urlencoded({extended:false}), (req, res) =>
         new URL(req.body.url)
         short_url = URLModel.create({url: req.body.url}).then(data => {
             res.json({"original_url": req.body.url, "short_url":data._id});
-        })
+        }).catch(e => console.log(e))
     } catch (TypeError) {
         res.json({"error": "invalid url"})
     }
@@ -40,6 +40,7 @@ app.get('/api/shorturl/:id', (req, res) => {
     URLModel.findById(req.params.id).then(data => {
         res.redirect(`//${data.url}`);
     }).catch(err => {
+        console.log(err)
         res.json({'error':"Couldn't find url"})
     })
 })
