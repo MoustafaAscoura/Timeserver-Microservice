@@ -26,10 +26,14 @@ app.get('/api/whoami', (req, res) => {
 })
 
 app.post('/api/shorturl', bodyParser.urlencoded({extended:false}), (req, res) => {
-    console.log(req.body)
-    short_url = URLModel.create({url: req.body.url}).then(data => {
-        res.json({"original_url": req.body.url, "short_url":data._id});
-    }).catch(err => res.json({"error": "Couldn't Shorten URL"}))
+    try {
+        new URL(req.body.url)
+        short_url = URLModel.create({url: req.body.url}).then(data => {
+            res.json({"original_url": req.body.url, "short_url":data._id});
+        })
+    } catch (TypeError) {
+        res.json({"error": "invalid url"})
+    }
 })
 
 app.get('/api/shorturl/:id', (req, res) => {
