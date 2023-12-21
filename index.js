@@ -1,4 +1,19 @@
 const express = require('express');
+const bodyParser = require('body-parser');
+const mongoose = require('mongoose');
+require('dotenv').config()
+
+mongoose.connect(process.env.DB_URI, { useNewUrlParser: true, useUnifiedTopology: true });
+
+const URLSchema = new mongoose.Schema({
+    url: {
+        type: String,
+        required: true
+    }
+})
+
+const URLModel = new mongoose.model('URL', URLSchema)
+
 const app = express();
 
 var cors = require('cors');
@@ -8,6 +23,21 @@ app.get('/api/whoami', (req, res) => {
     res.json({"ipaddress":req.ip,
     "language":req.headers['accept-language'],
     "software":req.headers['user-agent']})
+})
+
+app.post('/api/shorturl', bodyParser.urlencoded({extended:false}), (req, res) => {
+    console.log(req.body)
+    short_url = URLModel.create({url: req.body.url}).then(data => {
+        res.json({"original_url": req.body.url, "short_url":data._id});
+    }).catch(err => res.json({"error": "Couldn't Shorten URL"}))
+})
+
+app.get('/api/shorturl/:id', (req, res) => {
+    URLModel.findById(req.params.id).then(data => {
+        res.redirect(`//${data.url}`);
+    }).catch(err => {
+        res.json({'error':"Couldn't find url"})
+    })
 })
 
 app.get('/api/:date?', (req, res) => {
